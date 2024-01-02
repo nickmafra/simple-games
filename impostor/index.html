@@ -1,0 +1,75 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <title>Impostor</title>
+
+        <style>
+            div {
+                display: flex;
+                flex-direction: column;
+                flex-wrap: wrap;
+                padding: 10px;
+                gap: 5px;
+            }
+            #result {
+                flex-direction: row;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="configuration">
+            <div>
+                <label for="playerCount">Quantidade de jogadores:</label>
+                <input type="number" name="playerCount" id="playerCount" value="5" />
+            </div>
+            <div>
+                <label for="newWord">Nova palavra:</label>
+                <input name="newWord" id="newWord"  />
+                <input type="button"onclick="addWord()" value="Adicionar palavra">
+            </div>
+        </div>
+        <div>
+            <input type="button" onclick="generateResult()" value="Gerar">
+        </div>
+        <div id="result">
+        </div>
+        <script>
+            let words = [];
+            
+            function addWord() {
+                let element = document.getElementById("newWord");
+                let newWord = element.value;
+                if (newWord) {
+                    words.push(newWord);
+                }
+                element.value = "";
+            }
+
+            function generateResult() {
+                if (words.length == 0) {
+                    alert("Antes adicione alguma palavra");
+                    return;
+                }
+
+                let playerCount = document.getElementById("playerCount").value;
+                let impostor = Math.floor(Math.random() * playerCount);
+                let word = words[Math.floor(Math.random() * words.length)];
+
+                let resultContainer = document.getElementById("result");
+                resultContainer.textContent = '';
+
+                for (var player = 0; player < playerCount; player++) {
+                    let resultText = player == impostor ? "Impostor" : word;
+                    let resultItem = document.createElement('input');
+                    resultItem.type = "button";
+                    resultItem.value = "Jogador " + (player + 1);
+                    resultItem.onclick = () => alert(resultText);
+                    resultContainer.appendChild(resultItem);
+                }
+                console.log("Resultado gerado.");
+            }
+        </script>
+    </body>
+</html>
