@@ -70,6 +70,13 @@
                 }
                 console.log("Resultado gerado.");
             }
+
+            function checkEnter(event) {
+                if (event.keyCode === 13 || event.which === 13) {
+                    addWord();
+                }
+            }
+            document.getElementById("newWord").addEventListener("keyup", checkEnter);
         </script>
         <script async data-id="101440046" src="//static.getclicky.com/js"></script>
     </body>
