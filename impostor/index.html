@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8">
@@ -5,60 +6,85 @@
 
         <title>Impostor</title>
 
-        <style>
-            div {
-                display: flex;
-                flex-direction: column;
-                flex-wrap: wrap;
-                padding: 10px;
-                gap: 5px;
-            }
-            #result {
-                flex-direction: row;
-            }
-        </style>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
     </head>
-    <body>
-        <div id="configuration">
-            <div>
-                <label for="playerCount">Quantidade de jogadores:</label>
-                <input type="number" name="playerCount" id="playerCount" value="5" />
+    <body onload="start()" class="p-3">
+        <nav class="mb-3">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-menu="players" onclick="showMenu(this)">Jogadores</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-menu="words" onclick="showMenu(this)">Palavras</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-menu="match" onclick="showMenu(this)">Partida</a>
+                </li>
+            </ul>
+        </nav>
+        <main>
+            <div id="menu_players" class="menu">
+                <div class="form-floating">
+                    <input name="playerCount" type="number" class="form-control" placeholder="anything" value="5" />
+                    <label for="playerCount" class="form-label">Quantidade de jogadores</label>
+                </div>
             </div>
-            <div>
-                <label for="newWord">Nova palavra:</label>
-                <input name="newWord" id="newWord"  />
-                <input type="button"onclick="addWord()" value="Adicionar palavra">
-                <p>Palavras adicionadas: <span id="wordCounter">0</span></p>
+            <form id="menu_words" class="menu" style="display:none">
+                <div class="form-floating">
+                    <input name="newWord" class="form-control mb-3" placeholder="anything"  />
+                    <label for="newWord">Nova palavra</label>
+                </div>
+                <div class="form-text">Palavras adicionadas: <span id="wordCounter">0</span></div>
+                <input type="submit" class="btn btn-secondary" value="Adicionar palavra">
+            </form>
+            <div id="menu_match" class="menu" style="display:none">
+                <input type="button" class="btn btn-primary" onclick="generateResult()" value="Sortear">
+                <div id="result">
+                </div>
+                <input type="button" id="result_template" class="btn btn-secondary form-control mt-3" style="display:none" />
             </div>
-        </div>
-        <div>
-            <input type="button" onclick="generateResult()" value="Gerar">
-        </div>
-        <div id="result">
-        </div>
+        </main>
+
         <script>
             let words = [];
 
-            let savedWords = localStorage.getItem("words");
-            if (savedWords) {
-                words = JSON.parse(savedWords);
-                syncWordCounter();
+            function start() {
+                $('#menu_words').on("submit", addWord);
+                
+                let savedWords = localStorage.getItem("words");
+                if (savedWords) {
+                    words = JSON.parse(savedWords);
+                    syncWordCounter();
+                }
+            }
+
+            function showMenu(dom) {
+                let element = $(dom);
+                $('.menu').hide();
+                $('#menu_' + element.data('menu')).show();
+                $('nav a').removeClass('active');
+                element.addClass('active');
             }
             
-            function addWord() {
-                let element = document.getElementById("newWord");
-                let newWord = element.value;
+            function addWord(event) {
+                event.preventDefault();
+
+                let element = $('[name="newWord"]');
+                let newWord = element.val();
                 if (!newWord) {
                     return;
                 }
                 words.push(newWord);
-                element.value = "";
+                element.val('');
                 syncWordCounter();
                 save();
             }
 
             function syncWordCounter() {
-                document.getElementById("wordCounter").innerHTML = words.length;
+                $("#wordCounter").text(words.length);
             }
 
             function save() {
@@ -66,37 +92,29 @@
             }
 
             function generateResult() {
+                let resultContainer = $("#result");
+                resultContainer.empty();
                 if (words.length == 0) {
                     alert("Antes adicione alguma palavra");
                     return;
                 }
 
-                let playerCount = document.getElementById("playerCount").value;
+                let playerCount = $('[name="playerCount"]').val();
                 let impostor = Math.floor(Math.random() * playerCount);
                 let word = words.splice(Math.floor(Math.random() * words.length), 1)[0];
 
-                let resultContainer = document.getElementById("result");
-                resultContainer.textContent = '';
-
                 for (var player = 0; player < playerCount; player++) {
                     let resultText = player == impostor ? "Impostor" : word;
-                    let resultItem = document.createElement('input');
-                    resultItem.type = "button";
-                    resultItem.value = "Jogador " + (player + 1);
-                    resultItem.onclick = () => alert(resultText);
-                    resultContainer.appendChild(resultItem);
+                    let resultItem = $('#result_template').clone();
+                    resultItem.show();
+                    resultItem.val("Jogador " + (player + 1));
+                    resultItem.on('click', () => alert(resultText));
+                    resultContainer.append(resultItem);
                 }
-                console.log("Resultado gerado.");
                 syncWordCounter();
                 save();
+                alert("Palavra sorteada!");
             }
-
-            function checkEnter(event) {
-                if (event.keyCode === 13 || event.which === 13) {
-                    addWord();
-                }
-            }
-            document.getElementById("newWord").addEventListener("keyup", checkEnter);
         </script>
         <script async data-id="101440046" src="//static.getclicky.com/js"></script>
     </body>
