@@ -28,6 +28,7 @@
                 <label for="newWord">Nova palavra:</label>
                 <input name="newWord" id="newWord"  />
                 <input type="button"onclick="addWord()" value="Adicionar palavra">
+                <p>Palavras adicionadas: <span id="wordCounter">0</span></p>
             </div>
         </div>
         <div>
@@ -41,10 +42,16 @@
             function addWord() {
                 let element = document.getElementById("newWord");
                 let newWord = element.value;
-                if (newWord) {
-                    words.push(newWord);
+                if (!newWord) {
+                    return;
                 }
+                words.push(newWord);
                 element.value = "";
+                syncWordCounter();
+            }
+
+            function syncWordCounter() {
+                document.getElementById("wordCounter").innerHTML = words.length;
             }
 
             function generateResult() {
@@ -55,7 +62,7 @@
 
                 let playerCount = document.getElementById("playerCount").value;
                 let impostor = Math.floor(Math.random() * playerCount);
-                let word = words[Math.floor(Math.random() * words.length)];
+                let word = words.splice(Math.floor(Math.random() * words.length), 1)[0];
 
                 let resultContainer = document.getElementById("result");
                 resultContainer.textContent = '';
@@ -69,6 +76,7 @@
                     resultContainer.appendChild(resultItem);
                 }
                 console.log("Resultado gerado.");
+                syncWordCounter();
             }
 
             function checkEnter(event) {
