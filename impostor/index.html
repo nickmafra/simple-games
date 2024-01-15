@@ -38,6 +38,12 @@
         </div>
         <script>
             let words = [];
+
+            let savedWords = localStorage.getItem("words");
+            if (savedWords) {
+                words = JSON.parse(savedWords);
+                syncWordCounter();
+            }
             
             function addWord() {
                 let element = document.getElementById("newWord");
@@ -48,10 +54,15 @@
                 words.push(newWord);
                 element.value = "";
                 syncWordCounter();
+                save();
             }
 
             function syncWordCounter() {
                 document.getElementById("wordCounter").innerHTML = words.length;
+            }
+
+            function save() {
+                localStorage.setItem("words", JSON.stringify(words));
             }
 
             function generateResult() {
@@ -77,6 +88,7 @@
                 }
                 console.log("Resultado gerado.");
                 syncWordCounter();
+                save();
             }
 
             function checkEnter(event) {
