@@ -25,8 +25,12 @@
         <main>
             <div id="menu_players" class="menu">
                 <div class="form-floating">
+                    <input name="impostorCount" type="number" class="form-control" placeholder="anything" value="1" />
+                    <label for="impostorCount" class="form-label">Quantos impostores?</label>
+                </div>
+                <div class="form-floating">
                     <input name="playerCount" type="number" class="form-control" placeholder="anything" value="5" />
-                    <label for="playerCount" class="form-label">Quantidade de jogadores</label>
+                    <label for="playerCount" class="form-label">Quantos jogadores?</label>
                 </div>
             </div>
             <form id="menu_words" class="menu" style="display:none">
@@ -64,12 +68,7 @@
 
             function start() {
                 $('#menu_words').on("submit", addWord);
-                
-                let savedWords = localStorage.getItem("words");
-                if (savedWords) {
-                    words = JSON.parse(savedWords);
-                    syncWordCounter();
-                }
+                load();
             }
 
             function showMenu(dom) {
@@ -100,31 +99,77 @@
 
             function save() {
                 localStorage.setItem("words", JSON.stringify(words));
+                localStorage.setItem("impostorCount", $('[name="impostorCount"]').val());
+                localStorage.setItem("playerCount", $('[name="playerCount"]').val());
+            }
+
+            function load() {
+                let savedWords = localStorage.getItem("words");
+                if (savedWords) {
+                    words = JSON.parse(savedWords);
+                    syncWordCounter();
+                }
+                let impostorCount = localStorage.getItem("impostorCount");
+                if (impostorCount) {
+                    $('[name="impostorCount"]').val(impostorCount);
+                }
+                let playerCount = localStorage.getItem("playerCount");
+                if (playerCount) {
+                    $('[name="playerCount"]').val(playerCount);
+                }
             }
 
             function generateResult() {
                 let resultContainer = $("#result");
                 resultContainer.empty();
+
+                let playerCount = parseInt($('[name="playerCount"]').val());
+                let impostorCount = parseInt($('[name="impostorCount"]').val());
+
+                if (impostorCount >= playerCount) {
+                    showModal("Deve haver menos impostores que jogadores");
+                    return;
+                }
                 if (words.length == 0) {
                     showModal("Antes adicione alguma palavra");
                     return;
                 }
 
-                let playerCount = $('[name="playerCount"]').val();
-                let impostor = Math.floor(Math.random() * playerCount);
-                let word = words.splice(Math.floor(Math.random() * words.length), 1)[0];
+                let players = [...Array(playerCount).keys()];
 
-                for (var player = 0; player < playerCount; player++) {
-                    let resultText = player == impostor ? "Impostor" : word;
+                let impostors = drawMany([...players], impostorCount);
+
+                let word = draw(words);
+
+                players.forEach(player => {
+                    let isImpostor = impostors.includes(player);
+                    
                     let resultItem = $('#result_template').clone();
                     resultItem.show();
                     resultItem.val("Jogador " + (player + 1));
-                    resultItem.on('click', () => showModal(resultText));
+                    if (isImpostor) {
+                        resultItem.on('click', () => showModal('Você é o impostor'));
+                    } else {
+                        resultItem.on('click', () => showModal('A palavra é: ' + word));
+                    }
                     resultContainer.append(resultItem);
-                }
+                });
                 syncWordCounter();
                 save();
                 showModal("Palavra sorteada!");
+            }
+
+            function draw(items) {
+                let index = Math.floor(Math.random() * items.length);
+                return items.splice(index, 1)[0];
+            }
+
+            function drawMany(items, count) {
+                let draws = [];
+                for (let i = 0; i < count; i++) {
+                    draws.push(draw(items));
+                }
+                return draws;
             }
 
             function showModal(html) {
